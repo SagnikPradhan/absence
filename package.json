@@ -1,0 +1,21 @@
+{
+  "name": "absence",
+  "version": "0.0.0",
+  "scripts": {
+    "test": "tap --ts"
+  },
+  "dependencies": {
+    "uWebSockets.js": "uNetworking/uWebSockets.js#tag=v20.10.0"
+  },
+  "devDependencies": {
+    "$": "link:./source",
+    "@types/node": "^17.0.43",
+    "@types/supertest": "^2.0.12",
+    "@types/tap": "^15.0.7",
+    "supertest": "^6.2.3",
+    "tap": "^16.2.0",
+    "ts-node": "^10.8.1",
+    "typescript": "^4.7.3"
+  },
+  "packageManager": "yarn@3.2.1"
+}
