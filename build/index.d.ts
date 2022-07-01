@@ -9,6 +9,7 @@ interface Node<P, K> {
     type: K;
     path: string;
     data: Nullable<P>;
+    priority: number;
     childIndex: string;
     childValues: Node<P>[];
     childWild: Nullable<Node<P, Kind.PARAMETER | Kind.CATCH_ALL>>;
@@ -17,11 +18,12 @@ declare class Tree<P> {
     root: Node<P, Kind.ROOT>;
     add(path: string, data: P): void;
     private findAndInsert;
+    private sortOnPriorityFrom;
     private findCommonPrefixLength;
     private insertInNode;
     private findWildCard;
     lookup(path: string): {
-        data: P;
+        data: Nullable<P>;
         parameters: Record<string, string>;
     } | null;
 }

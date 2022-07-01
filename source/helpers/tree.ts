@@ -11,6 +11,7 @@ interface Node<P, K = Kind> {
   type: K
   path: string
   data: Nullable<P>
+  priority: number
 
   childIndex: string
   childValues: Node<P>[]
@@ -24,6 +25,7 @@ export class Tree<P> {
     type: Kind.ROOT,
     path: "/",
     data: null,
+    priority: 0,
 
     childIndex: "",
     childValues: [],
@@ -46,6 +48,7 @@ export class Tree<P> {
         path: node.path.slice(commonPrefixLength),
         type: node.type,
         data: node.data,
+        priority: node.priority,
         childIndex: node.childIndex,
         childValues: node.childValues,
         childWild: node.childWild,
@@ -55,6 +58,7 @@ export class Tree<P> {
       node.data = null
       node.childIndex = node.path[commonPrefixLength]
       node.path = node.path.slice(0, commonPrefixLength)
+      node.priority += 1
       node.childValues = [child]
       node.childWild = null
     }
@@ -65,15 +69,43 @@ export class Tree<P> {
       const childIndex = path[0]
 
       for (let index = 0; index < node.childIndex.length; index++)
-        if (childIndex === node.childIndex[index])
-          return this.findAndInsert(path, data, node.childValues[index])
+        if (childIndex === node.childIndex[index]) {
+          node.priority += 1
+          this.findAndInsert(path, data, node.childValues[index])
+          this.sortOnPriorityFrom(index, node)
+          return
+        }
 
+      node.priority += 1
       return this.insertInNode(node, path, data)
     }
 
     // Set data to node
     if (node.data !== null) throw new Error(`Found duplicate routes`)
     else node.data = data
+  }
+
+  /** Sort based on priority */
+  private sortOnPriorityFrom(position: number, node: Node<P>) {
+    const children = node.childValues
+    const index = node.childIndex
+    const priority = children[position].priority
+
+    let newPosition = position
+    while (newPosition > 0 && children[newPosition - 1].priority < priority) {
+      ;[children[newPosition], children[newPosition - 1]] = [
+        children[newPosition - 1],
+        children[newPosition],
+      ]
+      newPosition--
+    }
+
+    if (newPosition !== position)
+      node.childIndex =
+        index.slice(0, newPosition) +
+        index[position] +
+        index.slice(newPosition, position) +
+        index.slice(position + 1)
   }
 
   /** Find common prefix's length */
@@ -100,6 +132,7 @@ export class Tree<P> {
           type: Kind.STATIC,
           path: path.slice(0, wildcard.startIndex),
           data: null,
+          priority: 1,
           childIndex: "",
           childValues: [],
           childWild: null,
@@ -117,6 +150,7 @@ export class Tree<P> {
           path: parameter,
           type: wildchildType,
           data: null,
+          priority: 0,
           childIndex: "",
           childValues: [],
           childWild: null,
@@ -138,20 +172,16 @@ export class Tree<P> {
           node.childWild
         )
 
-      // No deeper nodes
-      if (node.childWild.data)
-        throw new Error("A wild card route is already registered")
-
       node.childWild.data = data
       return
     }
 
     node.childIndex += path[0]
-
     node.childValues.push({
       type: Kind.STATIC,
       path,
       data,
+      priority: 0,
       childIndex: "",
       childValues: [],
       childWild: null,
@@ -191,65 +221,68 @@ export class Tree<P> {
 
   /** Lookup a node */
   lookup(path: string) {
-    let currentNode: Node<P> = this.root
+    let node: Node<P> = this.root
     let data: Nullable<P> = null
     const parameters: Record<string, string> = {}
 
     NEXT_NODE: while (true) {
-      if (path.length < currentNode.path.length) break
+      if (path.length > node.path.length) {
+        if (path.slice(0, node.path.length) === node.path) {
+          path = path.slice(node.path.length)
 
-      if (path === currentNode.path) {
-        data = currentNode.data
-        break
-      }
-
-      if (path.slice(0, currentNode.path.length) !== currentNode.path) break
-      else path = path.slice(currentNode.path.length)
-
-      const character = path[0]
-      const childIndex = currentNode.childIndex
-
-      for (let index = 0; index < childIndex.length; index++) {
-        if (character === childIndex[index]) {
-          currentNode = currentNode.childValues[index]
-          continue NEXT_NODE
-        }
-      }
-
-      if (currentNode.childWild) {
-        const wildChild = currentNode.childWild
-        let parameterEndIndex = 0
-
-        if (wildChild.type === Kind.PARAMETER)
-          while (
-            path[parameterEndIndex] !== "/" &&
-            parameterEndIndex < path.length
-          )
-            parameterEndIndex++
-        else parameterEndIndex = path.length - 1
-
-        parameters[wildChild.path.slice(1, -1)] = path.slice(
-          0,
-          parameterEndIndex
-        )
-
-        path = path.slice(parameterEndIndex + 1)
-
-        if (path.length > 0) {
           const character = path[0]
-          const childIndex = wildChild.childIndex
+          const childIndex = node.childIndex
 
           for (let index = 0; index < childIndex.length; index++) {
             if (character === childIndex[index]) {
-              currentNode = wildChild.childValues[index]
+              node = node.childValues[index]
               continue NEXT_NODE
             }
           }
-        } else data = wildChild.data
-      }
-    }
 
-    if (data) return { data, parameters }
-    else return null
+          if (node.childWild) {
+            node = node.childWild
+
+            switch (node.type) {
+              case Kind.PARAMETER:
+                let slashIndex = 0
+                while (slashIndex < path.length && path[slashIndex] !== "/")
+                  slashIndex++
+
+                parameters[node.path.slice(1, -1)] = path.slice(0, slashIndex)
+
+                if (path.length > slashIndex + 1) {
+                  if (node.childValues.length > 0) {
+                    path = path.slice(slashIndex + 1)
+
+                    const character = path[0]
+                    const childIndex = node.childIndex
+
+                    for (let index = 0; index < childIndex.length; index++) {
+                      if (character === childIndex[index]) {
+                        node = node.childValues[index]
+                        continue NEXT_NODE
+                      }
+                    }
+                  }
+
+                  return null
+                }
+
+                return { data: node.data, parameters }
+
+              case Kind.CATCH_ALL:
+                parameters[node.path.slice(1, -1)] = path
+                return { data: node.data, parameters }
+            }
+          }
+        }
+      } else if (path === node.path) {
+        data = node.data
+      }
+
+      if (data) return { data, parameters }
+      else return null
+    }
   }
 }

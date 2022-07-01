@@ -6,17 +6,17 @@ tap.test("Should set and retrieve values", (t) => {
 
   tree.add("/", "A")
   tree.add("/a/:parameter", "B")
+  tree.add("/a/c/:parameter", "F")
   tree.add("/a/b", "C")
   tree.add("/a/b/:parameter", "D")
   tree.add("/a/b/c/*parameter", "E")
-  tree.add("/a/c/:parameter", "F")
   tree.add("/a", "G")
 
   t.same(tree.lookup("/"), { data: "A", parameters: {} })
   t.same(tree.lookup("/a/1/"), { data: "B", parameters: { parameter: "1" } })
   t.same(tree.lookup("/a/b/"), { data: "C", parameters: {} })
   t.same(tree.lookup("/a/b/2/"), { data: "D", parameters: { parameter: "2" } })
-  t.same(tree.lookup("/a/b/c/3/"), {
+  t.same(tree.lookup("/a/b/c/3"), {
     data: "E",
     parameters: { parameter: "3" },
   })
