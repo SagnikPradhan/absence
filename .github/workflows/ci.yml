@@ -8,13 +8,15 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: "true"
       - uses: actions/setup-node@v3
         with:
           node-version: latest
           cache: "yarn"
       - run: yarn install
-      - run: yarn test
+      - run: yarn workspace absence test

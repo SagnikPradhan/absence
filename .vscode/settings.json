@@ -1,6 +1,11 @@
 {
-  "search.exclude": { "**/.yarn": true, "**/node_modules": true },
-  "typescript.tsdk": "node_modules\\typescript\\lib",
-  "prettier.prettierPath": "node_modules\\prettier",
-  "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "search.exclude": {
+    "**/.yarn": true,
+    "**/node_modules": true,
+    "**/.pnp.*": true
+  },
+  "typescript.tsdk": ".yarn/sdks/typescript/lib",
+  "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }

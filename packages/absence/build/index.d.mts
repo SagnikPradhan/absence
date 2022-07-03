@@ -16,14 +16,13 @@ interface Node<P, K> {
 }
 declare class Tree<P> {
     root: Node<P, Kind.ROOT>;
-    add(path: string, data: P): void;
-    private findAndInsert;
+    add(path: string, data: P, node?: Node<P>): void;
     private sortOnPriorityFrom;
     private findCommonPrefixLength;
     private insertInNode;
     private findWildCard;
     lookup(path: string): {
-        data: Nullable<P>;
+        data: P;
         parameters: Record<string, string>;
     } | null;
 }

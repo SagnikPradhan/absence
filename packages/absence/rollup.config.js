@@ -4,7 +4,12 @@ import terser from "rollup-plugin-terser"
 /** @type {import("rollup").RollupOptions} */
 const config = {
   input: "./source/index.ts",
-  output: { file: "./build/index.js", format: "cjs", sourcemap: true },
+
+  output: [
+    { file: "./build/index.js", format: "cjs", sourcemap: true },
+    { file: "./build/index.mjs", format: "esm", sourcemap: true },
+  ],
+
   plugins: [
     typescript({
       transpiler: "babel",

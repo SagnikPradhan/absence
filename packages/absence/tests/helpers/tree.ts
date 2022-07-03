@@ -5,12 +5,12 @@ tap.test("Should set and retrieve values", (t) => {
   const tree = new Tree<string>()
 
   tree.add("/", "A")
-  tree.add("/a/:parameter", "B")
-  tree.add("/a/c/:parameter", "F")
-  tree.add("/a/b", "C")
-  tree.add("/a/b/:parameter", "D")
-  tree.add("/a/b/c/*parameter", "E")
-  tree.add("/a", "G")
+  tree.add("/a/:parameter/", "B")
+  tree.add("/a/c/:parameter/", "F")
+  tree.add("/a/b/", "C")
+  tree.add("/a/b/:parameter/", "D")
+  tree.add("/a/b/c/*parameter/", "E")
+  tree.add("/a/", "G")
 
   t.same(tree.lookup("/"), { data: "A", parameters: {} })
   t.same(tree.lookup("/a/1/"), { data: "B", parameters: { parameter: "1" } })
@@ -36,8 +36,8 @@ tap.test(
     const tree = new Tree<string>()
 
     t.throws(() => {
-      tree.add("/path/:users", "A")
-      tree.add("/path/:somethingElse", "B")
+      tree.add("/path/:users/", "A")
+      tree.add("/path/:somethingElse/", "B")
     }, /Found duplicate parameters at same position - :somethingElse, :users/)
 
     t.end()
@@ -48,8 +48,8 @@ tap.test("Should throw for duplicate routes", (t) => {
   const tree = new Tree<string>()
 
   t.throws(() => {
-    tree.add("/path/something", "A")
-    tree.add("/path/something", "B")
+    tree.add("/path/something/", "A")
+    tree.add("/path/something/", "B")
   }, /Found duplicate routes/)
 
   t.end()
@@ -58,13 +58,13 @@ tap.test("Should throw for duplicate routes", (t) => {
 tap.test("Should use fallback values properly", (t) => {
   const tree = new Tree<string>()
 
-  tree.add("/user/admin", "A")
-  tree.add("/user/admin/dashboard", "B")
-  tree.add("/user/admin/dashboard/page", "C")
-  tree.add("/user/:user/dashboard/page", "D")
-  tree.add("/user/:user/dashboard/page/something", "E")
-  tree.add("/posts/feed", "F")
-  tree.add("/posts/:id", "G")
+  tree.add("/user/admin/", "A")
+  tree.add("/user/admin/dashboard/", "B")
+  tree.add("/user/admin/dashboard/page/", "C")
+  tree.add("/user/:user/dashboard/page/", "D")
+  tree.add("/user/:user/dashboard/page/something/", "E")
+  tree.add("/posts/feed/", "F")
+  tree.add("/posts/:id/", "G")
 
   t.same(tree.lookup("/user/admin/dashboard/page/"), {
     data: "C",

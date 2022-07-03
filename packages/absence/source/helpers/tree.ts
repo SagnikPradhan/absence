@@ -18,8 +18,6 @@ interface Node<P, K = Kind> {
   childWild: Nullable<Node<P, Kind.PARAMETER | Kind.CATCH_ALL>>
 }
 
-const MULTI_SLASH_REGEX = /\/+|(?<!\/)($|^)/g
-
 export class Tree<P> {
   root: Node<P, Kind.ROOT> = {
     type: Kind.ROOT,
@@ -32,13 +30,8 @@ export class Tree<P> {
     childWild: null,
   }
 
-  /** Add new node */
-  public add(path: string, data: P) {
-    this.findAndInsert(path.replace(MULTI_SLASH_REGEX, "/"), data, this.root)
-  }
-
   /** Finds branch and inserts node */
-  private findAndInsert(path: string, data: P, node: Node<P>): void {
+  public add(path: string, data: P, node: Node<P> = this.root): void {
     const commonPrefixLength = this.findCommonPrefixLength(path, node.path)
     if (commonPrefixLength === 0) throw new Error("Cannot add child node")
 
@@ -71,7 +64,7 @@ export class Tree<P> {
       for (let index = 0; index < node.childIndex.length; index++)
         if (childIndex === node.childIndex[index]) {
           node.priority += 1
-          this.findAndInsert(path, data, node.childValues[index])
+          this.add(path, data, node.childValues[index])
           this.sortOnPriorityFrom(index, node)
           return
         }
@@ -166,11 +159,7 @@ export class Tree<P> {
 
       // If there are deeper nodes
       if (wildcard.endIndex + 1 < path.length)
-        return this.findAndInsert(
-          path.slice(wildcard.startIndex),
-          data,
-          node.childWild
-        )
+        return this.add(path.slice(wildcard.startIndex), data, node.childWild)
 
       node.childWild.data = data
       return
@@ -269,11 +258,14 @@ export class Tree<P> {
                   return null
                 }
 
-                return { data: node.data, parameters }
+                if (node.data) return { data: node.data, parameters }
+                else return null
 
               case Kind.CATCH_ALL:
                 parameters[node.path.slice(1, -1)] = path
-                return { data: node.data, parameters }
+
+                if (node.data) return { data: node.data, parameters }
+                else return null
             }
           }
         }
