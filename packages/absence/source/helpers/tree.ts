@@ -33,7 +33,7 @@ export class Tree<P> {
   /** Finds branch and inserts node */
   public add(path: string, data: P, node: Node<P> = this.root): void {
     const commonPrefixLength = this.findCommonPrefixLength(path, node.path)
-    if (commonPrefixLength === 0) throw new Error("Cannot add child node")
+    // if (commonPrefixLength === 0) throw new Error("Cannot add child node")
 
     // Split edge
     if (commonPrefixLength < node.path.length) {
@@ -159,7 +159,9 @@ export class Tree<P> {
 
       // If there are deeper nodes
       if (wildcard.endIndex + 1 < path.length)
-        return this.add(path.slice(wildcard.startIndex), data, node.childWild)
+        if (wildchildType === Kind.PARAMETER)
+          return this.add(path.slice(wildcard.startIndex), data, node.childWild)
+        else throw new Error("Found path after catch all parameter")
 
       node.childWild.data = data
       return
@@ -185,16 +187,17 @@ export class Tree<P> {
 
     for (let index = 0; index < path.length; index++) {
       if (path[index] === ":") {
-        if (startIndex > -1) throw new Error("Invalid path")
+        if (startIndex > -1)
+          throw new Error("Found multiple parameters in same segment")
         startIndex = index
         type = Kind.PARAMETER
       }
 
       if (path[index] === "*") {
-        if (startIndex > -1) throw new Error("Invalid path")
+        if (startIndex > -1)
+          throw new Error("Found multiple parameters in same segment")
         startIndex = index
         type = Kind.CATCH_ALL
-        break
       }
 
       if (path[index] === "/") {
@@ -264,8 +267,7 @@ export class Tree<P> {
               case Kind.CATCH_ALL:
                 parameters[node.path.slice(1, -1)] = path
 
-                if (node.data) return { data: node.data, parameters }
-                else return null
+                return { data: node.data!, parameters }
             }
           }
         }

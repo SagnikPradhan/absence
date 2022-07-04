@@ -1,29 +1,52 @@
-declare enum Kind {
-    ROOT = 0,
-    STATIC = 1,
-    PARAMETER = 2,
-    CATCH_ALL = 3
+interface Server<Context extends BaseContext> {
+    route(path: string): Route<Context>;
+    route(options: {
+        path: string;
+        method: string;
+    }): Route<Context>;
+    use<Name extends string, ContextProperty extends {}>(plugin: Plugin<Name, Context, ContextProperty>): Server<{
+        [name in Name]: ContextProperty;
+    } & Context>;
+    useErrorHandler(handler: (error: Error) => Promise<void>): Server<Context>;
+    listen(port: number): Promise<number>;
+    stop(): void;
 }
-type Nullable<V> = V | null;
-interface Node<P, K> {
-    type: K;
+interface Route<Context extends BaseContext> {
+    use<Name extends string, ContextProperty extends {}>(plugin: Plugin<Name, Context, ContextProperty>): Route<{
+        [name in Name]: ContextProperty;
+    } & Context>;
+    handle(handler: Handler<Context>): void;
+}
+interface RouteDetails<C extends BaseContext> {
     path: string;
-    data: Nullable<P>;
-    priority: number;
-    childIndex: string;
-    childValues: Node<P>[];
-    childWild: Nullable<Node<P, Kind.PARAMETER | Kind.CATCH_ALL>>;
+    method: string;
+    handler: Handler<C>;
+    plugins: Plugin[];
 }
-declare class Tree<P> {
-    root: Node<P, Kind.ROOT>;
-    add(path: string, data: P, node?: Node<P>): void;
-    private sortOnPriorityFrom;
-    private findCommonPrefixLength;
-    private insertInNode;
-    private findWildCard;
-    lookup(path: string): {
-        data: P;
-        parameters: Record<string, string>;
-    } | null;
+type Handler<Context extends BaseContext> = (context: Context) => Promise<void>;
+interface Plugin<Name extends string, Context extends BaseContext, ContextProperty extends {}> {
+    name: Name;
+    initialize?(): Promise<ContextProperty> | Promise<void>;
+    handler?(context: Context & {
+        [name in Name]: ContextProperty;
+    }): Promise<void>;
 }
-export { Tree };
+interface BaseContext {
+    request: Request;
+    response: Response;
+}
+interface Request {
+    path: string;
+    method: string;
+    queries: Record<string, string>;
+    headers: Record<string, string>;
+    parameters: Record<string, string>;
+    body: string;
+}
+interface Response {
+    setHeader(key: string, value: string): Response;
+    setStatus(status: number, message?: string): Response;
+    send(body?: string): void;
+}
+declare function createServer<C extends BaseContext>(): Server<C>;
+export { Server, Route, RouteDetails, Handler, Plugin, BaseContext, Request, Response, createServer };

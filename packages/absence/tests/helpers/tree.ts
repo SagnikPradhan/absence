@@ -10,6 +10,7 @@ tap.test("Should set and retrieve values", (t) => {
   tree.add("/a/b/", "C")
   tree.add("/a/b/:parameter/", "D")
   tree.add("/a/b/c/*parameter/", "E")
+  tree.add("/a/d/:parameter/e", "H")
   tree.add("/a/", "G")
 
   t.same(tree.lookup("/"), { data: "A", parameters: {} })
@@ -26,6 +27,7 @@ tap.test("Should set and retrieve values", (t) => {
   })
   t.same(tree.lookup("/d/something/somethingelse/"), null)
   t.same(tree.lookup("/a/"), { data: "G", parameters: {} })
+  t.same(tree.lookup("/a/d/1"), null)
 
   t.end()
 })
@@ -44,6 +46,16 @@ tap.test(
   }
 )
 
+tap.test("Should throw for path after catch all", (t) => {
+  const tree = new Tree<string>()
+
+  t.throws(() => {
+    tree.add("/path/*catchAll/something", "A")
+  }, /Found path after catch all parameter/)
+
+  t.end()
+})
+
 tap.test("Should throw for duplicate routes", (t) => {
   const tree = new Tree<string>()
 
@@ -51,6 +63,20 @@ tap.test("Should throw for duplicate routes", (t) => {
     tree.add("/path/something/", "A")
     tree.add("/path/something/", "B")
   }, /Found duplicate routes/)
+
+  t.end()
+})
+
+tap.test("Should throw for multiple parameters", (t) => {
+  const tree = new Tree<string>()
+
+  t.throws(() => {
+    tree.add("/path/*catchAll*AnotherCatchAll", "A")
+  }, /Found multiple parameters in same segment/)
+
+  t.throws(() => {
+    tree.add("/path/:parameter:anotherParameter", "A")
+  }, /Found multiple parameters in same segment/)
 
   t.end()
 })

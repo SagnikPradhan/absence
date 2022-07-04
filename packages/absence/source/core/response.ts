@@ -1,16 +1,11 @@
 import UWS from "uWebSockets.js"
 import { STATUS_CODES } from "http"
+import { Response } from "."
 
 interface Payload {
   headers: Record<string, string>
   status: string
   body: string
-}
-
-export interface Response {
-  setHeader(key: string, value: string): Response
-  setStatus(status: number, message?: string): Response
-  send(body?: string): void
 }
 
 export function createResponse(uwsResponse: UWS.HttpResponse): Response {

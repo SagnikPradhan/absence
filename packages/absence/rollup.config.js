@@ -1,5 +1,5 @@
-import typescript from "rollup-plugin-ts"
 import terser from "rollup-plugin-terser"
+import typescript from "rollup-plugin-ts"
 
 /** @type {import("rollup").RollupOptions} */
 const config = {
@@ -16,6 +16,7 @@ const config = {
       browserslist: "current node",
       tsconfig: "./tsconfig.json",
     }),
+
     terser.terser(),
   ],
 }

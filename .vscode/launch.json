@@ -6,11 +6,12 @@
   "configurations": [
     {
       "type": "node",
+      "runtimeExecutable": "yarn",
       "request": "launch",
-      "runtimeArgs": ["--require=ts-node/register"],
+      "runtimeArgs": ["node", "--require=ts-node/register"],
       "name": "Run test (current)",
       "program": "${workspaceFolder}/${relativeFile}",
-      "cwd": "${workspaceFolder}",
+      "cwd": "${workspaceFolder}/${relativeFileDirname}",
       "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"]
     }
   ]

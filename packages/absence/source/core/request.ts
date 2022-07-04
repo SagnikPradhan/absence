@@ -2,7 +2,7 @@ import UWS from "uWebSockets.js"
 
 const MULTI_SLASH_REGEX = /\/+|(?<!\/)($|^)/g
 
-function normalize(path: string) {
+export function normalizePath(path: string) {
   return path.replace(MULTI_SLASH_REGEX, "/")
 }
 
@@ -27,20 +27,11 @@ function getQueries(request: UWS.HttpRequest) {
   return Object.fromEntries(new URLSearchParams(request.getQuery()).entries())
 }
 
-export interface Request {
-  path: string
-  method: string
-  queries: Record<string, string>
-  headers: Record<string, string>
-  parameters: Record<string, string>
-  body: string
-}
-
-export async function createPartialRequest(
+export async function extractRequest(
   response: UWS.HttpResponse,
   request: UWS.HttpRequest
-): Promise<Omit<Request, "parameters">> {
-  const path = normalize(request.getUrl())
+) {
+  const path = normalizePath(request.getUrl())
   const method = request.getMethod()
   const queries = getQueries(request)
   const headers = getHeaders(request)

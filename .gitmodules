@@ -1,4 +1,0 @@
-[submodule "packages/uWebSockets.js"]
-	path = packages/uWebSockets.js
-	url = https://github.com/uNetworking/uWebSockets.js.git
-	branch = binaries
