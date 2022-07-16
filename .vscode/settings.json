@@ -4,8 +4,12 @@
     "**/node_modules": true,
     "**/.pnp.*": true
   },
-  "typescript.tsdk": ".yarn/sdks/typescript/lib",
-  "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
+
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "typescript.enablePromptUseWorkspaceTsdk": true
+  "typescript.tsdk": ".yarn/sdks/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
+
+  "rust-analyzer.linkedProjects": ["./packages/router/Cargo.toml"],
+  "[rust]": { "editor.defaultFormatter": "rust-lang.rust-analyzer" }
 }

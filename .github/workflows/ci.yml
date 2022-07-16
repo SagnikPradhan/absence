@@ -13,6 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
       - uses: actions/setup-node@v3
         with:
           node-version: latest
@@ -34,4 +38,5 @@ jobs:
       - run: yarn install
         if: steps.cache-primes.outputs.cache-hit != 'true'
 
-      - run: yarn workspace absence test
+      - run: yarn build
+      - run: yarn test
