@@ -1,26 +1,31 @@
 import { STATUS_CODES } from "http"
-import type UWS from "uWebSockets.js"
-import type { Response } from "./server"
+import type { HttpResponse } from "uWebSockets.js"
 
 interface Payload {
-  headers: Record<string, string>
+  headers: [string, string][]
   status: string
-  body: string
+  body?: string
 }
 
-export function createResponse(uwsResponse: UWS.HttpResponse): Response {
+export interface Response {
+  setHeader(key: string, value: string): Response
+  setStatus(status: number, message?: string): Response
+  redirect(location: string, status?: number): void
+  send(body?: string): void
+}
+
+export function createResponse(uwsResponse: HttpResponse): Response {
   const responseStatus = { aborted: false, sent: false }
   uwsResponse.onAborted(() => (responseStatus.aborted = true))
 
   const response: Payload = {
-    headers: {},
-    body: "",
+    headers: [],
     status: `418 ${STATUS_CODES[418]}`,
   }
 
   return {
     setHeader(key: string, value: string) {
-      response.headers[key] = value
+      response.headers.push([key, value])
       return this
     },
 
@@ -40,10 +45,11 @@ export function createResponse(uwsResponse: UWS.HttpResponse): Response {
 
       if (!responseStatus.aborted)
         uwsResponse.cork(() => {
-          for (const key in response.headers)
-            uwsResponse.writeHeader(key, response.headers[key]!)
-
           uwsResponse.writeStatus(response.status)
+
+          for (const [key, value] of response.headers)
+            uwsResponse.writeHeader(key, value)
+
           uwsResponse.end(response.body)
         })
     },

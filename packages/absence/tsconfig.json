@@ -1,0 +1,3 @@
+{
+  "extends": "@absence/scripts/tsconfig.base.json"
+}
