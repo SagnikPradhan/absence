@@ -1,42 +1,166 @@
 name: ci
 
-on:
+env:
+  DEBUG: napi:*
+  MACOSX_DEPLOYMENT_TARGET: "10.13"
+
+"on":
   push:
-    branches: ["dev"]
-  pull_request:
-    branches: ["dev"]
+    branches:
+      - main
+      - dev
+    tags-ignore:
+      - "**"
+    paths-ignore:
+      - "**/*.md"
+      - LICENSE
+      - "**/*.gitignore"
+      - .editorconfig
+      - docs/**
+  pull_request: null
+  repository_dispatch: null
 
 jobs:
-  test:
-    runs-on: windows-latest
+  build:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: macos-latest
+            target: x86_64-apple-darwin
+            build: |
+              yarn build
+              strip -x *.node
+          - host: windows-latest
+            build: yarn build
+            target: x86_64-pc-windows-msvc
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            build: |-
+              set -e &&
+              yarn build --target x86_64-unknown-linux-gnu &&
+              strip *.node
+
+    name: build - ${{ matrix.settings.target }} - node@latest
+    runs-on: ${{ matrix.settings.host }}
 
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-
-      - uses: actions/setup-node@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        if: ${{ !matrix.settings.docker }}
         with:
           node-version: latest
-          cache: "yarn"
+          check-latest: true
+          cache: yarn
 
-      - run: corepack enable
+      - name: Install
+        uses: actions-rs/toolchain@v1
+        if: ${{ !matrix.settings.docker }}
+        with:
+          profile: minimal
+          override: true
+          toolchain: stable
+          target: ${{ matrix.settings.target }}
 
-      - run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
-        id: yarn-cache-dir-path
+      - name: Cache cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            packages/absence-router/.cargo-cache/registry/index/
+            packages/absence-router/.cargo-cache/registry/cache/
+            packages/absence-router/.cargo-cache/git/db/
+            packages/absence-router/target/
+          key: ${{ matrix.settings.target }}-cargo-registry
 
-      - uses: actions/cache@v3
+      - name: Cache npm dependencies
+        uses: actions/cache@v3
         id: yarn-cache
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          path: .yarn/cache
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - run: yarn install
-        if: steps.cache-primes.outputs.cache-hit != 'true'
+      - name: Setup toolchain
+        run: ${{ matrix.settings.setup }}
+        if: ${{ matrix.settings.setup }}
+        shell: bash
 
-      - run: yarn build
-      - run: yarn test
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build bindings
+        working-directory: packages/absence-router
+        run: ${{ matrix.settings.build }}
+        shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: packages/absence-router/router.*.node
+          if-no-files-found: error
+
+      - name: Build packages
+        run: yarn build
+
+  test:
+    name: Test bindings on ${{ matrix.settings.target }}
+    needs:
+      - build
+
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+          - host: macos-latest
+            target: x86_64-apple-darwin
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+
+    runs-on: ${{ matrix.settings.host }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: latest
+          check-latest: true
+          cache: yarn
+
+      - name: Cache NPM dependencies
+        uses: actions/cache@v3
+        with:
+          path: .yarn/cache
+          key: npm-cache-test-${{ matrix.settings.target }}
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: packages/absence-router
+
+      - name: Build
+        run: yarn build
+
+      - name: Test bindings
+        run: yarn test

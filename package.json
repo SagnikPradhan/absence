@@ -6,7 +6,7 @@
   ],
   "scripts": {
     "build": "yarn workspaces foreach -p --topological-dev run build",
-    "test": "yarn workspaces foreach -p run test"
+    "test": "yarn workspaces foreach -p run test --detectOpenHandles"
   },
   "devDependencies": {
     "@absence/scripts": "workspace:^",

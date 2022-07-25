@@ -24,7 +24,7 @@ export interface Middleware<C extends BaseContext, P extends Properties> {
 export type ResolvedContext<
   C extends BaseContext,
   P extends Properties,
-  N extends Exclude<string, keyof C> = never
+  N = void
 > = P extends Properties<infer Context, infer Request, infer Response>
   ? C &
       Prefix<N, Context> & {
@@ -33,4 +33,4 @@ export type ResolvedContext<
       }
   : never
 
-type Prefix<N extends string, O> = N extends never ? O : { [K in N]: O }
+type Prefix<O, N> = N extends string ? { [K in N]: O } : O

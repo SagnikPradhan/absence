@@ -11,6 +11,25 @@ __metadata:
   languageName: node
   linkType: soft
 
+"@absence/body@workspace:packages/absence-body":
+  version: 0.0.0-use.local
+  resolution: "@absence/body@workspace:packages/absence-body"
+  dependencies:
+    "@absence/scripts": "workspace:^"
+    "@tsconfig/node18-strictest": "npm:^1.0.0"
+    "@types/jest": "npm:^28.1.6"
+    "@types/superagent": "npm:^4.1.15"
+    absence: "workspace:^"
+    jest: "npm:^28.1.3"
+    rollup: "npm:^2.77.0"
+    superagent: "npm:^8.0.0"
+    type-fest: "npm:^2.17.0"
+    typescript: "npm:^4.7.4"
+  peerDependencies:
+    absence: "workspace:^"
+  languageName: unknown
+  linkType: soft
+
 "@absence/cookies@workspace:packages/absence-cookies":
   version: 0.0.0-use.local
   resolution: "@absence/cookies@workspace:packages/absence-cookies"
@@ -26,7 +45,6 @@ __metadata:
     rollup: "npm:^2.77.0"
     superagent: "npm:^8.0.0"
     typescript: "npm:^4.7.4"
-    undici: "npm:^5.8.0"
   peerDependencies:
     absence: "workspace:^"
   languageName: unknown
@@ -4524,6 +4542,13 @@ node-releases@chicoxyzzy/node-releases:
   languageName: node
   linkType: hard
 
+"type-fest@npm:^2.17.0":
+  version: 2.17.0
+  resolution: "type-fest@npm:2.17.0"
+  checksum: 58ac520d28e4c03c8362c3069154c5107cdfe4d8b0ee373dc979e5dfd055c2d5911aa0980e0ab102a0de68d541de4d202bb01d9f0a596c19031e933933dee499
+  languageName: node
+  linkType: hard
+
 "typescript@npm:^4.7.3":
   version: 4.7.3
   resolution: "typescript@npm:4.7.3"
@@ -4582,13 +4607,6 @@ node-releases@chicoxyzzy/node-releases:
   version: 5.7.0
   resolution: "undici@npm:5.7.0"
   checksum: 423cbc190a9464f073b9de8a7638c66127b46a234e4cff785255dc7deba974224997c7cbef7956f75b380f29033e16f3029e29a88538e39e421fbd6d4852cdeb
-  languageName: node
-  linkType: hard
-
-"undici@npm:^5.8.0":
-  version: 5.8.0
-  resolution: "undici@npm:5.8.0"
-  checksum: 9fcf1ecdbefe0acd01a5f4596666a18dfc37fff67c2b6765bfe44d16311541387fc05883c934c1ccb170fff87ab9bad875bb1ffdc833b23c8c674cfd37f967d3
   languageName: node
   linkType: hard
 

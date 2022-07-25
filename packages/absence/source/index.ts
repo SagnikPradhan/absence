@@ -9,7 +9,11 @@ import type {
 } from "./types"
 
 interface RouteBuilder<Context extends BaseContext> {
-  use(handler: Handler<Context, void>): RouteBuilder<Context>
+  use<P extends Properties | void>(
+    handler: Handler<Context, P>
+  ): P extends Properties
+    ? RouteBuilder<ResolvedContext<Context, P>>
+    : RouteBuilder<Context>
 
   use<N extends Exclude<string, keyof Context>, P extends Properties>(
     name: N,
@@ -24,9 +28,9 @@ export default class Server<C extends BaseContext> extends InternalServer<C> {
     handler: Handler<C, P>
   ) => handler
 
-  public use<P extends Properties>(
+  public use<P extends Properties | void>(
     handler: Handler<C, P>
-  ): Server<ResolvedContext<C, P>>
+  ): P extends Properties ? Server<ResolvedContext<C, P>> : Server<C>
 
   public use<N extends Exclude<string, keyof C>, P extends Properties>(
     name: N,
@@ -55,7 +59,7 @@ export default class Server<C extends BaseContext> extends InternalServer<C> {
 
     const builder: RouteBuilder<C> = {
       use<N extends Exclude<string, keyof C>, P extends Properties>(
-        a: Handler<C, void> | string,
+        a: Handler<C, void> | N,
         b?: Handler<C, P>
       ) {
         const middleware: Middleware<C, P> =
@@ -72,3 +76,8 @@ export default class Server<C extends BaseContext> extends InternalServer<C> {
     return builder
   }
 }
+
+export * from "./request"
+export * from "./response"
+export * from "./server"
+export * from "./types"
