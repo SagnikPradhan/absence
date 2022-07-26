@@ -1,20 +1,190 @@
 name: ci
 
-on:
-  push:
-    branches: ["dev"]
+env:
+  DEBUG: napi:*
+  MACOSX_DEPLOYMENT_TARGET: "10.13"
+
+"on":
   pull_request:
-    branches: ["dev"]
+    branches:
+      - dev
+      - main
+    paths-ignore:
+      - "**/*.md"
+      - "**/*.gitignore"
+
+  pull_request_review:
+    branches:
+      - main
+    types: [submitted]
+
+  repository_dispatch: null
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  build-test:
+    strategy:
+      fail-fast: true
+
+      matrix:
+        settings:
+          - host: macos-latest
+            target: x86_64-apple-darwin
+            build: |
+              yarn build
+              strip -x *.node
+          - host: windows-latest
+            build: yarn build
+            target: x86_64-pc-windows-msvc
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            build: |-
+              set -e &&
+              yarn build --target x86_64-unknown-linux-gnu &&
+              strip *.node
+
+    name: build and test - ${{ matrix.settings.target }} - node@latest
+    runs-on: ${{ matrix.settings.host }}
 
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+
+      - name: Setup node
+        uses: actions/setup-node@v3
         with:
           node-version: latest
-          cache: "yarn"
-      - run: yarn install
-      - run: yarn test
+          check-latest: true
+          cache: yarn
+
+      - name: Setup rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+          toolchain: stable
+          target: ${{ matrix.settings.target }}
+
+      - name: Cache cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry/
+            ~/.cargo/git/
+            packages/absence-router/.cargo-cache/registry/index/
+            packages/absence-router/.cargo-cache/registry/cache/
+            packages/absence-router/.cargo-cache/git/db/
+            packages/absence-router/target/
+          key: ${{ matrix.settings.target }}-cargo-registry
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v3
+        id: yarn-cache
+        with:
+          path: .yarn/cache
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build bindings
+        working-directory: packages/absence-router
+        run: ${{ matrix.settings.build }}
+        shell: bash
+
+      - name: Build packages
+        run: yarn build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: packages/absence-router/router.*.node
+          if-no-files-found: error
+
+      - name: Test bindings
+        run: yarn test
+
+      - name: Check format
+        run: yarn prettier --check .
+
+  release:
+    # Change this for all contributors in future
+    if: ${{ github.base_ref == 'main' && github.event.pull_request.user.login == 'SagnikPradhan' && github.event.review.state == 'approved' }}
+
+    name: release
+    runs-on: ubuntu-latest
+    needs:
+      - build-test
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: latest
+          check-latest: true
+          cache: yarn
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v3
+        id: yarn-cache
+        with:
+          path: .yarn/cache
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build
+        run: yarn build
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: packages/absence-router/artifacts
+
+      - name: Move artifacts
+        run: yarn workspace @absence/router artifacts
+
+      - name: Publish
+        run: |
+          yarn version check
+          yarn version apply --all ${{ (startsWith(github.event.pull_request.title, 'prerelease') && '--prerelease') || '' }}
+          yarn workspaces foreach --no-private npm publish --tolerate-republish --access public
+        env:
+          YARN_NPM_AUTH_TOKEN: "${{ secrets.NPM_AUTH_TOKEN }}"
+
+      - name: Commit changes
+        id: autocommit
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: Sagnik Pradhan
+          author_email: contact.sagnikpradhan@gmail.com
+          message: "chore: release"
+
+      - name: Add automerge label
+        uses: actions-ecosystem/action-add-labels@v1
+        if: ${{ steps.autocommit.outputs.comitted == true }}
+        with:
+          labels: automerge
+
+      - name: Automerge
+        uses: "pascalgn/automerge-action@v0.15.3"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          MERGE_METHOD: squash
+          MERGE_COMMIT_MESSAGE: "pull-request-title-and-description"

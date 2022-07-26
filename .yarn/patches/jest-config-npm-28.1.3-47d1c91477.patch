@@ -1,0 +1,16 @@
+diff --git a/build/resolveConfigPath.js b/build/resolveConfigPath.js
+index 51b0b3374612898f9198d4d62b172a69a0908431..2abb49fb74fa9e3731a8ad9a8497fcfe41a1aed6 100644
+--- a/build/resolveConfigPath.js
++++ b/build/resolveConfigPath.js
+@@ -125,6 +125,11 @@ function resolveConfigPath(
+     throw new Error(`"cwd" must be an absolute path. cwd: ${cwd}`);
+   }
+ 
++  try {
++    const userRequire = require("module").createRequire(`${cwd}/package.json`)
++    return userRequire.resolve(pathToResolve)
++  } catch {}
++
+   const absolutePath = path().isAbsolute(pathToResolve)
+     ? pathToResolve
+     : path().resolve(cwd, pathToResolve);

@@ -1,4 +1,15 @@
 {
-  "search.exclude": { "**/.yarn": true, "**/node_modules": true },
-  "typescript.tsdk": "node_modules\\typescript\\lib"
+  "search.exclude": {
+    "**/.yarn": true,
+    "**/node_modules": true,
+    "**/.pnp.*": true
+  },
+
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "typescript.tsdk": ".yarn/sdks/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
+
+  "rust-analyzer.linkedProjects": ["./packages/router/Cargo.toml"],
+  "[rust]": { "editor.defaultFormatter": "rust-lang.rust-analyzer" }
 }
