@@ -23,7 +23,8 @@ env:
 jobs:
   build-test:
     strategy:
-      fail-fast: false
+      fail-fast: true
+
       matrix:
         settings:
           - host: macos-latest
