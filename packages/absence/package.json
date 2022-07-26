@@ -4,6 +4,9 @@
   "main": "./build/index.js",
   "module": "./build/index.mjs",
   "types": "./build/index.d.ts",
+  "files": [
+    "./build"
+  ],
   "scripts": {
     "build": "rollup --config node:@absence/scripts/rollup.js",
     "test": "jest --config @absence/scripts/jest.js"

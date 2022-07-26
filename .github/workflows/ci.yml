@@ -13,16 +13,18 @@ env:
       - "**"
     paths-ignore:
       - "**/*.md"
-      - LICENSE
       - "**/*.gitignore"
-      - .editorconfig
-      - docs/**
-  pull_request: null
+  pull_request:
+    paths-ignore:
+      - "**/*.md"
+      - "**/*.gitignore"
+  pull_request_target:
+    types:
+      - labeled
   repository_dispatch: null
 
 jobs:
-  build:
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
+  build-test:
     strategy:
       fail-fast: false
       matrix:
@@ -42,7 +44,7 @@ jobs:
               yarn build --target x86_64-unknown-linux-gnu &&
               strip *.node
 
-    name: build - ${{ matrix.settings.target }} - node@latest
+    name: build and test - ${{ matrix.settings.target }} - node@latest
     runs-on: ${{ matrix.settings.host }}
 
     steps:
@@ -50,15 +52,13 @@ jobs:
 
       - name: Setup node
         uses: actions/setup-node@v3
-        if: ${{ !matrix.settings.docker }}
         with:
           node-version: latest
           check-latest: true
           cache: yarn
 
-      - name: Install
+      - name: Setup rust
         uses: actions-rs/toolchain@v1
-        if: ${{ !matrix.settings.docker }}
         with:
           profile: minimal
           override: true
@@ -69,9 +69,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
+            ~/.cargo/registry/
+            ~/.cargo/git/
             packages/absence-router/.cargo-cache/registry/index/
             packages/absence-router/.cargo-cache/registry/cache/
             packages/absence-router/.cargo-cache/git/db/
@@ -87,11 +86,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - name: Setup toolchain
-        run: ${{ matrix.settings.setup }}
-        if: ${{ matrix.settings.setup }}
-        shell: bash
-
       - name: Enable corepack
         run: corepack enable
 
@@ -103,6 +97,9 @@ jobs:
         run: ${{ matrix.settings.build }}
         shell: bash
 
+      - name: Build packages
+        run: yarn build
+
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
@@ -110,29 +107,19 @@ jobs:
           path: packages/absence-router/router.*.node
           if-no-files-found: error
 
-      - name: Build packages
-        run: yarn build
+      - name: Test bindings
+        run: yarn test
 
-  test:
-    name: Test bindings on ${{ matrix.settings.target }}
-    needs:
-      - build
+  release:
+    if: ${{ github.event_name == 'pull_request_target' && github.event.label.name == 'auto-merge' }}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        settings:
-          - host: windows-latest
-            target: x86_64-pc-windows-msvc
-          - host: macos-latest
-            target: x86_64-apple-darwin
-          - host: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-
-    runs-on: ${{ matrix.settings.host }}
+    name: release
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Setup node
         uses: actions/setup-node@v3
@@ -141,11 +128,14 @@ jobs:
           check-latest: true
           cache: yarn
 
-      - name: Cache NPM dependencies
+      - name: Cache npm dependencies
         uses: actions/cache@v3
+        id: yarn-cache
         with:
           path: .yarn/cache
-          key: npm-cache-test-${{ matrix.settings.target }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
 
       - name: Enable corepack
         run: corepack enable
@@ -153,14 +143,32 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: bindings-${{ matrix.settings.target }}
-          path: packages/absence-router
-
       - name: Build
         run: yarn build
 
-      - name: Test bindings
-        run: yarn test
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: packages/absence-router/artifacts
+
+      - name: Move artifacts
+        run: yarn workspace @absence/router artifacts
+
+      - name: Run prettier
+        run: |
+          yarn prettier --write .
+          git diff --quiet && git diff --staged --quiet || git commit -am 'style: auto format'
+
+      - name: Publish
+        run: |
+          yarn version check
+          yarn version apply
+          yarn workspaces foreach --since=origin/main npm publish --access public
+
+      - name: Push
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+        run: |
+          git checkout main
+          git merge --squash ${BASE_BRANCH}
+          git commit
