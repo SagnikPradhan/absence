@@ -9,14 +9,19 @@ env:
     branches:
       - dev
       - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
     paths-ignore:
       - "**/*.md"
       - "**/*.gitignore"
 
-  pull_request_review:
-    branches:
-      - main
-    types: [submitted]
+  # pull_request_review:
+  #   branches:
+  #     - main
+  #   types: [submitted]
 
   repository_dispatch: null
 
@@ -112,7 +117,7 @@ jobs:
         run: yarn prettier --check .
 
   release:
-    if: ${{ github.base_ref == 'main' && github.event.review.state == 'approved' }}
+    if: ${{ github.base_ref == 'main' }}
 
     name: release
     runs-on: ubuntu-latest
@@ -171,11 +176,11 @@ jobs:
           author_email: contact.sagnikpradhan@gmail.com
           message: "chore: release"
 
-      - name: Add automerge label
-        uses: actions-ecosystem/action-add-labels@v1
-        if: ${{ steps.autocommit.outputs.comitted == true }}
-        with:
-          labels: automerge
+      # - name: Add automerge label
+      #   uses: actions-ecosystem/action-add-labels@v1
+      #   if: ${{ steps.autocommit.outputs.comitted == true }}
+      #   with:
+      #     labels: automerge
 
       - name: Automerge
         uses: "pascalgn/automerge-action@v0.15.3"
