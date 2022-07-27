@@ -155,4 +155,5 @@ jobs:
         with:
           author_name: Sagnik Pradhan
           author_email: contact.sagnikpradhan@gmail.com
+          push: "--force"
           message: "Release"
