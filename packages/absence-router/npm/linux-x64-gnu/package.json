@@ -1,6 +1,6 @@
 {
   "name": "@absence/router-linux-x64-gnu",
-  "version": "0.0.0",
+  "version": "1.0.0-rc.1",
   "os": [
     "linux"
   ],
@@ -17,5 +17,6 @@
   },
   "libc": [
     "glibc"
-  ]
+  ],
+  "stableVersion": "0.0.0"
 }

@@ -1,6 +1,6 @@
 {
   "name": "@absence/router",
-  "version": "0.0.0",
+  "version": "1.0.0-rc.1",
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
@@ -31,5 +31,6 @@
   "engines": {
     "node": ">= 16"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "stableVersion": "0.0.0"
 }
