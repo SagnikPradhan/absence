@@ -5,12 +5,6 @@ __metadata:
   version: 7
   cacheKey: 9
 
-"$@link:./source::locator=absence%40workspace%3Apackages%2Fabsence":
-  version: 0.0.0-use.local
-  resolution: "$@link:./source::locator=absence%40workspace%3Apackages%2Fabsence"
-  languageName: node
-  linkType: soft
-
 "@absence/body@workspace:packages/absence-body":
   version: 0.0.0-use.local
   resolution: "@absence/body@workspace:packages/absence-body"
@@ -1208,7 +1202,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "absence@workspace:packages/absence"
   dependencies:
-    $: "link:./source"
     "@absence/router": "workspace:^"
     "@absence/scripts": "workspace:^"
     "@tsconfig/node18-strictest": "npm:^1.0.0"

@@ -16,7 +16,6 @@
     "uWebSockets.js": "uNetworking/uWebSockets.js.git#commit=b5050782314a2959684ada0f05c6e690f78ee762"
   },
   "devDependencies": {
-    "$": "link:./source",
     "@absence/scripts": "workspace:^",
     "@tsconfig/node18-strictest": "^1.0.0",
     "@types/jest": "^28.1.5",
