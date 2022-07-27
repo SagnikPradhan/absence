@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@absence/router": "workspace:^",
-    "uWebSockets.js": "uNetworking/uWebSockets.js.git#commit=b5050782314a2959684ada0f05c6e690f78ee762"
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#b5050782314a2959684ada0f05c6e690f78ee762"
   },
   "devDependencies": {
     "@absence/scripts": "workspace:^",
