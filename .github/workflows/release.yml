@@ -144,7 +144,7 @@ jobs:
       - name: Publish
         run: |
           yarn version check
-          yarn version apply --all ${{ github.ref == 'dev' && '--prerelease') || '' }}
+          yarn version apply --all ${{ (github.ref == 'dev' && '--prerelease') || '' }}
           yarn workspaces foreach --no-private npm publish --tolerate-republish --access public
         env:
           YARN_NPM_AUTH_TOKEN: "${{ secrets.NPM_AUTH_TOKEN }}"
