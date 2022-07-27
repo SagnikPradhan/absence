@@ -1,20 +1,20 @@
-name: build-test
+name: release
 
 env:
   DEBUG: napi:*
   MACOSX_DEPLOYMENT_TARGET: "10.13"
 
 "on":
-  pull_request:
+  push:
     branches:
-      - dev
       - main
+      - dev
     paths-ignore:
       - "**/*.md"
       - "**/*.gitignore"
 
 jobs:
-  build-test:
+  build:
     strategy:
       fail-fast: true
 
@@ -35,13 +35,11 @@ jobs:
               yarn build --target x86_64-unknown-linux-gnu &&
               strip *.node
 
-    name: build and test - ${{ matrix.settings.target }}
+    name: build - ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: Setup node
         uses: actions/setup-node@v3
@@ -80,7 +78,7 @@ jobs:
         uses: actions/cache@v3
         id: bindings-cache
         with:
-          path: packages/absence-router/router.*.node
+          path: packages/absence-router/rotuer.*.node
           key: ${{ runner.os }}-bindings-${{ hashFiles('packages/absence-router/**/*') }}
 
       - name: Build bindings
@@ -99,11 +97,62 @@ jobs:
           path: packages/absence-router/router.*.node
           if-no-files-found: error
 
-      - name: Test bindings
-        run: yarn test
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    needs:
+      - build
 
-      - name: Check format
-        run: yarn prettier --check .
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-      - name: Check versions
-        run: yarn version check
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: latest
+          check-latest: true
+          cache: yarn
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v3
+        id: yarn-cache
+        with:
+          path: .yarn/cache
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: packages/absence-router/artifacts
+
+      - name: Move artifacts
+        run: yarn workspace @absence/router artifacts
+
+      - name: Build packages
+        run: yarn build
+
+      - name: Publish
+        run: |
+          yarn version check
+          yarn version apply --all ${{ github.ref == 'dev' && '--prerelease') || '' }}
+          yarn workspaces foreach --no-private npm publish --tolerate-republish --access public
+        env:
+          YARN_NPM_AUTH_TOKEN: "${{ secrets.NPM_AUTH_TOKEN }}"
+
+      - name: Commit changes
+        id: autocommit
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: Sagnik Pradhan
+          author_email: contact.sagnikpradhan@gmail.com
+          message: "Release"
