@@ -68,15 +68,6 @@ jobs:
             packages/absence-router/target/
           key: ${{ matrix.settings.target }}-cargo-registry
 
-      - name: Cache npm dependencies
-        uses: actions/cache@v3
-        id: yarn-cache
-        with:
-          path: .yarn/cache
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
       - name: Enable corepack
         run: corepack enable
 

@@ -70,15 +70,6 @@ jobs:
             packages/absence-router/target/
           key: ${{ matrix.settings.target }}-cargo-registry
 
-      - name: Cache npm dependencies
-        uses: actions/cache@v3
-        id: yarn-cache
-        with:
-          path: .yarn/cache
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
       - name: Enable corepack
         run: corepack enable
 
@@ -89,7 +80,7 @@ jobs:
         uses: actions/cache@v3
         id: bindings-cache
         with:
-          path: packages/absence-router/rotuer.*.node
+          path: packages/absence-router/router.*.node
           key: ${{ runner.os }}-bindings-${{ hashFiles('packages/absence-router/**/*') }}
 
       - name: Build bindings
