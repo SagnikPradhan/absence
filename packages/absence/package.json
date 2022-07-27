@@ -1,6 +1,6 @@
 {
   "name": "absence",
-  "version": "0.0.0",
+  "version": "1.0.0-rc.1",
   "main": "./build/index.js",
   "module": "./build/index.mjs",
   "types": "./build/index.d.ts",
@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@absence/router": "workspace:^",
-    "uWebSockets.js": "uNetworking/uWebSockets.js.git#commit=b5050782314a2959684ada0f05c6e690f78ee762"
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#b5050782314a2959684ada0f05c6e690f78ee762"
   },
   "devDependencies": {
     "@absence/scripts": "workspace:^",
@@ -25,5 +25,6 @@
     "typescript": "^4.7.3",
     "undici": "^5.6.0"
   },
-  "packageManager": "yarn@3.2.1"
+  "packageManager": "yarn@3.2.1",
+  "stableVersion": "0.0.0"
 }

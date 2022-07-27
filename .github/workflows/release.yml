@@ -103,6 +103,8 @@ jobs:
     needs:
       - build
 
+    if: github.event.head_commit.message != 'Release'
+
     steps:
       - uses: actions/checkout@v3
         with:
@@ -153,7 +155,7 @@ jobs:
         id: autocommit
         uses: EndBug/add-and-commit@v9
         with:
-          author_name: Sagnik Pradhan
-          author_email: contact.sagnikpradhan@gmail.com
           push: "--force"
           message: "Release"
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}

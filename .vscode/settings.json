@@ -14,5 +14,5 @@
   "[rust]": {
     "editor.defaultFormatter": "rust-lang.rust-analyzer"
   },
-  "conventionalCommits.scopes": ["github"]
+  "conventionalCommits.scopes": ["github", "absence"]
 }
