@@ -4,20 +4,16 @@
   "workspaces": [
     "./packages/**/*"
   ],
-  "scripts": {
-    "build": "yarn workspaces foreach -p --topological-dev run build",
-    "test": "yarn workspaces foreach -p run test --detectOpenHandles"
-  },
+  "scripts": {},
   "devDependencies": {
-    "@absence/scripts": "workspace:^",
+    "@changesets/cli": "^2.24.1",
     "prettier": "^2.7.1",
     "prettier-plugin-jsdoc": "^0.3.38",
     "typescript": "^4.7.3"
   },
-  "resolutions": {
-    "node-preload": "0.2.0",
-    "node-releases": "chicoxyzzy/node-releases",
-    "jest-config@npm:^28.1.3": "patch:jest-config@npm%3A28.1.3#~/.yarn/patches/jest-config-npm-28.1.3-47d1c91477.patch"
-  },
-  "packageManager": "yarn@3.2.1"
+  "pnpm": {
+    "patchedDependencies": {
+      "jest-config@28.1.3": "patches/jest-config@28.1.3.patch"
+    }
+  }
 }
