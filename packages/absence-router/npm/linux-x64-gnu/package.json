@@ -1,6 +1,6 @@
 {
   "name": "@absence/router-linux-x64-gnu",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-alpha.3",
   "os": [
     "linux"
   ],
