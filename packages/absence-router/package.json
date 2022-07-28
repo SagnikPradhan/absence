@@ -1,6 +1,6 @@
 {
   "name": "@absence/router",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-alpha.3",
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
