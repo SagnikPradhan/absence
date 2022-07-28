@@ -24,6 +24,28 @@ test("Should respond GET request", async () => {
   server.stop()
 })
 
+test("Should infer parameters", async () => {
+  const server = createApp()
+
+  server
+    .route({ path: "/cats/:cat/query/*query", method: "get" })
+    .use(async (context) => {
+      const cat = context.request.parameters.cat
+      const query = context.request.parameters.query
+
+      return context.response.send(`Cat is: ${cat}, Query is: ${query}`)
+    })
+
+  const PORT = await server.listen(0)
+  const response = await superagent(
+    `http://localhost:${PORT}/cats/tommy/query/food/noon`
+  ).send()
+
+  expect(response.text).toEqual("Cat is: tommy, Query is: food/noon")
+
+  server.stop()
+})
+
 test("Should respond 404 request", async () => {
   const server = createApp()
   const PORT = await server.listen(0)

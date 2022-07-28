@@ -1,8 +1,10 @@
 import type { Request } from "./request"
 import type { Response } from "./response"
 
-export interface BaseContext {
-  request: Request
+export interface BaseContext<
+  Parameters extends Record<string, string> = Record<string, string>
+> {
+  request: Request<Parameters>
   response: Response
 }
 
@@ -48,3 +50,12 @@ export type HTTPMethods =
   | "options"
   | "trace"
   | "patch"
+
+type ParameterTokens = ":" | "*"
+
+export type GetParameters<S extends string> =
+  S extends `${string}${ParameterTokens}${infer Parameter}/${infer Rest}`
+    ? { [K in Parameter | keyof GetParameters<Rest>]: string }
+    : S extends `${string}${ParameterTokens}${infer Parameter}`
+    ? { [K in Parameter]: string }
+    : {}

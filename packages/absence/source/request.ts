@@ -1,12 +1,14 @@
 import type { HttpRequest, HttpResponse } from "uWebSockets.js"
 import type { HTTPMethods } from "./types"
 
-export interface Request {
+export interface Request<
+  Parameters extends Record<string, string> = Record<string, string>
+> {
   path: string
   method: HTTPMethods
   queries: Record<string, string>
   headers: Record<string, string>
-  parameters: Record<string, string>
+  parameters: Parameters
   body: string
 }
 

@@ -3,6 +3,7 @@ import { createServer } from "./server"
 
 import type {
   BaseContext,
+  GetParameters,
   Handler,
   HTTPMethods,
   Middleware,
@@ -33,7 +34,9 @@ export interface App<C extends BaseContext> {
     handler: Handler<C, P>
   ): App<ResolvedContext<C, P, N>>
 
-  route(o: string | { path: string; method: HTTPMethods }): RouteBuilder<C>
+  route<Path extends string>(
+    matcher: Path | { path: Path; method: HTTPMethods }
+  ): RouteBuilder<C & BaseContext<GetParameters<Path>>>
 
   listen(port: number): Promise<number>
   stop(): void
@@ -63,24 +66,32 @@ export function createApp(): App<BaseContext> {
     listen: server.listen,
     use: createUse(middlewares),
 
-    route: (o: string | { path: string; method: string }) => {
+    route: <P extends string>(o: P | { path: P; method: HTTPMethods }) => {
       const matcher = typeof o === "object" ? o : { path: o, method: "all" }
       const middlewares: Middleware[] = []
       router.add(matcher.method, matcher.path, middlewares)
-      return { use: createUse(middlewares) }
+
+      return {
+        use: createUse<
+          RouteBuilder<BaseContext<GetParameters<P>>>,
+          BaseContext<GetParameters<P>>
+        >(middlewares),
+      }
     },
   }
 }
 
-function createUse<O>(middlewares: Middleware[]) {
+function createUse<O, Context extends BaseContext>(
+  middlewares: Middleware<Context, Properties>[]
+) {
   return function use<
-    N extends Exclude<string, keyof BaseContext>,
+    N extends Exclude<string, keyof Context>,
     P extends Properties
-  >(this: O, a: Handler<BaseContext, void> | N, b?: Handler<BaseContext, P>) {
-    const middleware: Middleware<BaseContext, P> =
+  >(this: O, a: Handler<Context, void> | N, b?: Handler<Context, P>) {
+    const middleware: Middleware<Context, P> =
       typeof a === "function"
         ? { name: null, handler: a }
-        : { name: a as string, handler: b as Handler<BaseContext, P> }
+        : { name: a as string, handler: b as Handler<Context, P> }
 
     middlewares.push(middleware)
 
