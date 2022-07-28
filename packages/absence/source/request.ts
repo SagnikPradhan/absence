@@ -1,8 +1,9 @@
 import type { HttpRequest, HttpResponse } from "uWebSockets.js"
+import type { HTTPMethods } from "./types"
 
 export interface Request {
   path: string
-  method: string
+  method: HTTPMethods
   queries: Record<string, string>
   headers: Record<string, string>
   parameters: Record<string, string>
@@ -40,7 +41,7 @@ export async function createRequest({
   parameters: Record<string, string>
 }): Promise<Request> {
   const path = request.getUrl()
-  const method = request.getMethod()
+  const method = request.getMethod() as HTTPMethods
   const queries = getQueries(request)
   const headers = getHeaders(request)
   const body = await getBody(response)

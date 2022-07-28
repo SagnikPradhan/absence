@@ -37,3 +37,14 @@ export type ResolvedContext<
   : never
 
 type Prefix<O, N> = N extends string ? { [K in N]: O } : O
+
+export type HTTPMethods =
+  | "get"
+  | "head"
+  | "post"
+  | "put"
+  | "delete"
+  | "connect"
+  | "options"
+  | "trace"
+  | "patch"

@@ -4,6 +4,7 @@ import { createServer } from "./server"
 import type {
   BaseContext,
   Handler,
+  HTTPMethods,
   Middleware,
   Properties,
   ResolvedContext,
@@ -32,7 +33,7 @@ export interface App<C extends BaseContext> {
     handler: Handler<C, P>
   ): App<ResolvedContext<C, P, N>>
 
-  route(o: string | { path: string; method: string }): RouteBuilder<C>
+  route(o: string | { path: string; method: HTTPMethods }): RouteBuilder<C>
 
   listen(port: number): Promise<number>
   stop(): void
@@ -46,7 +47,7 @@ export function createApp(): App<BaseContext> {
     onError: (error) => console.error(error),
 
     getRouteDetails: ({ method, path }) => {
-      const route = router.find(method, path)
+      const route = router.find(method, path) || router.find("all", path)
 
       if (route)
         return {
