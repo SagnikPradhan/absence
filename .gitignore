@@ -131,7 +131,7 @@ dist
 
 # Dev files
 packages/absence*/build/
-packages/absence-router/*.node
+packages/absence-router/**/*.node
 packages/absence-router/index.d.ts
 packages/absence-router/index.js
 
