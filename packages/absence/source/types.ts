@@ -1,8 +1,10 @@
 import type { Request } from "./request"
 import type { Response } from "./response"
 
-export interface BaseContext {
-  request: Request
+export interface BaseContext<
+  Parameters extends Record<string, string> = Record<string, string>
+> {
+  request: Request<Parameters>
   response: Response
 }
 
@@ -16,7 +18,10 @@ export interface Properties<C = {}, Request = {}, Response = {}> {
   response?: Response
 }
 
-export interface Middleware<C extends BaseContext, P extends Properties> {
+export interface Middleware<
+  C extends BaseContext = BaseContext,
+  P extends Properties = Properties
+> {
   name: string | null
   handler: Handler<C, P> | Handler<C, void>
 }
@@ -34,3 +39,23 @@ export type ResolvedContext<
   : never
 
 type Prefix<O, N> = N extends string ? { [K in N]: O } : O
+
+export type HTTPMethods =
+  | "get"
+  | "head"
+  | "post"
+  | "put"
+  | "delete"
+  | "connect"
+  | "options"
+  | "trace"
+  | "patch"
+
+type ParameterTokens = ":" | "*"
+
+export type GetParameters<S extends string> =
+  S extends `${string}${ParameterTokens}${infer Parameter}/${infer Rest}`
+    ? { [K in Parameter | keyof GetParameters<Rest>]: string }
+    : S extends `${string}${ParameterTokens}${infer Parameter}`
+    ? { [K in Parameter]: string }
+    : {}

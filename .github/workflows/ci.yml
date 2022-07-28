@@ -23,16 +23,16 @@ jobs:
           - host: macos-latest
             target: x86_64-apple-darwin
             build: |
-              yarn build
+              pnpm build
               strip -x *.node
           - host: windows-latest
-            build: yarn build
+            build: pnpm build
             target: x86_64-pc-windows-msvc
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             build: |-
               set -e &&
-              yarn build --target x86_64-unknown-linux-gnu &&
+              pnpm build --target x86_64-unknown-linux-gnu &&
               strip *.node
 
     name: build and test - ${{ matrix.settings.target }}
@@ -43,12 +43,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
       - name: Setup node
         uses: actions/setup-node@v3
         with:
           node-version: latest
           check-latest: true
-          cache: yarn
+          cache: pnpm
 
       - name: Setup rust
         uses: actions-rs/toolchain@v1
@@ -70,18 +74,15 @@ jobs:
             packages/absence-router/target/
           key: ${{ matrix.settings.target }}-cargo-registry
 
-      - name: Enable corepack
-        run: corepack enable
-
       - name: Install dependencies
-        run: yarn install
+        run: pnpm install --frozen-lockfile
 
       - name: Cache bindings
         uses: actions/cache@v3
         id: bindings-cache
         with:
           path: packages/absence-router/router.*.node
-          key: ${{ runner.os }}-bindings-${{ hashFiles('packages/absence-router/**/*') }}
+          key: ${{ runner.os }}-bindings-${{ hashFiles('packages/absence-router/**/*.rs') }}
 
       - name: Build bindings
         if: steps.bindings-cache.outputs.cache-hit != 'true'
@@ -90,7 +91,7 @@ jobs:
         shell: bash
 
       - name: Build packages
-        run: yarn build
+        run: pnpm build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -100,10 +101,7 @@ jobs:
           if-no-files-found: error
 
       - name: Test bindings
-        run: yarn test
+        run: pnpm test
 
       - name: Check format
-        run: yarn prettier --check .
-
-      - name: Check versions
-        run: yarn version check
+        run: pnpm prettier --check .

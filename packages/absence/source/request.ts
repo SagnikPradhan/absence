@@ -1,11 +1,14 @@
 import type { HttpRequest, HttpResponse } from "uWebSockets.js"
+import type { HTTPMethods } from "./types"
 
-export interface Request {
+export interface Request<
+  Parameters extends Record<string, string> = Record<string, string>
+> {
   path: string
-  method: string
+  method: HTTPMethods
   queries: Record<string, string>
   headers: Record<string, string>
-  parameters: Record<string, string>
+  parameters: Parameters
   body: string
 }
 
@@ -40,21 +43,10 @@ export async function createRequest({
   parameters: Record<string, string>
 }): Promise<Request> {
   const path = request.getUrl()
-  const method = request.getMethod()
+  const method = request.getMethod() as HTTPMethods
   const queries = getQueries(request)
   const headers = getHeaders(request)
   const body = await getBody(response)
 
-  const parsedRequest = { path, method, queries, parameters, headers, body }
-
-  Object.defineProperties(parsedRequest, {
-    path: { configurable: false, writable: false },
-    method: { configurable: false, writable: false },
-    queries: { configurable: false, writable: false },
-    parameters: { configurable: false, writable: false },
-    headers: { configurable: false, writable: false },
-    body: { configurable: false, writable: false },
-  })
-
-  return parsedRequest
+  return { path, method, queries, parameters, headers, body }
 }

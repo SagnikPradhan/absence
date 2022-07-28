@@ -1,5 +1,6 @@
 import { STATUS_CODES } from "http"
 import type { HttpResponse } from "uWebSockets.js"
+import type { JsonValue } from "type-fest"
 
 interface Payload {
   headers: [string, string][]
@@ -8,10 +9,12 @@ interface Payload {
 }
 
 export interface Response {
+  status: { aborted: boolean; sent: boolean }
   setHeader(key: string, value: string): Response
   setStatus(status: number, message?: string): Response
   redirect(location: string, status?: number): void
   send(body?: string): void
+  sendJson(body: JsonValue): void
 }
 
 export function createResponse(uwsResponse: HttpResponse): Response {
@@ -20,10 +23,12 @@ export function createResponse(uwsResponse: HttpResponse): Response {
 
   const response: Payload = {
     headers: [],
-    status: `418 ${STATUS_CODES[418]}`,
+    status: `200 ${STATUS_CODES[200]}`,
   }
 
   return {
+    status: responseStatus,
+
     setHeader(key: string, value: string) {
       response.headers.push([key, value])
       return this
@@ -36,6 +41,12 @@ export function createResponse(uwsResponse: HttpResponse): Response {
 
     redirect(location, status = 307) {
       this.setHeader("Location", location).setStatus(status).send()
+    },
+
+    sendJson(data: JsonValue) {
+      this.setHeader("Content-Type", "application/json").send(
+        JSON.stringify(data)
+      )
     },
 
     send(data?: string) {

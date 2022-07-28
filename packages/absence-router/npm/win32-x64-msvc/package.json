@@ -1,6 +1,6 @@
 {
   "name": "@absence/router-win32-x64-msvc",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.0-rc.2",
   "os": [
     "win32"
   ],
@@ -14,6 +14,5 @@
   "license": "MIT",
   "engines": {
     "node": ">= 10"
-  },
-  "stableVersion": "0.0.0"
+  }
 }

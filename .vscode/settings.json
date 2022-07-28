@@ -1,18 +1,12 @@
 {
-  "search.exclude": {
-    "**/.yarn": true,
-    "**/node_modules": true,
-    "**/.pnp.*": true
-  },
+  "search.exclude": { "**/node_modules": true },
 
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "typescript.tsdk": ".yarn/sdks/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true,
-  "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
+  "typescript.tsdk": "node_modules\\typescript\\lib",
+  "prettier.prettierPath": "node_modules\\prettier\\index.js",
 
   "rust-analyzer.linkedProjects": ["./packages/router/Cargo.toml"],
-  "[rust]": {
-    "editor.defaultFormatter": "rust-lang.rust-analyzer"
-  },
-  "conventionalCommits.scopes": ["github", "absence"]
+  "[rust]": { "editor.defaultFormatter": "rust-lang.rust-analyzer" },
+
+  "conventionalCommits.scopes": ["github", "absence", "cookie", "body"]
 }
