@@ -83,7 +83,7 @@ jobs:
         id: bindings-cache
         with:
           path: packages/absence-router/rotuer.*.node
-          key: ${{ runner.os }}-bindings-${{ hashFiles('packages/absence-router/**/*') }}
+          key: ${{ runner.os }}-bindings-${{ hashFiles('packages/absence-router/**/*.rs') }}
 
       - name: Build bindings
         if: steps.bindings-cache.outputs.cache-hit != 'true'
