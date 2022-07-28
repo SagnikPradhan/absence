@@ -55,3 +55,18 @@ test("Should redirect", async () => {
 
   server.stop()
 })
+
+test("Should send JSON response", async () => {
+  const server = createApp()
+
+  server
+    .route({ path: "/", method: "get" })
+    .use((context) => context.response.sendJson({ hello: "world" }))
+
+  const PORT = await server.listen(0)
+  const response = await superagent(`http://localhost:${PORT}`).send()
+
+  expect(response.body).toEqual({ hello: "world" })
+
+  server.stop()
+})

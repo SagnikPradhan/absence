@@ -1,7 +1,6 @@
-.yarn
-.pnp.*
 **/coverage
 **/build
 **/target
 packages/absence-router/index.d.ts
 packages/absence-router/index.js
+pnpm-lock.yaml

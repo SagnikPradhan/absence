@@ -1,5 +1,6 @@
 import { STATUS_CODES } from "http"
 import type { HttpResponse } from "uWebSockets.js"
+import type { JsonValue } from "type-fest"
 
 interface Payload {
   headers: [string, string][]
@@ -13,6 +14,7 @@ export interface Response {
   setStatus(status: number, message?: string): Response
   redirect(location: string, status?: number): void
   send(body?: string): void
+  sendJson(body: JsonValue): void
 }
 
 export function createResponse(uwsResponse: HttpResponse): Response {
@@ -39,6 +41,12 @@ export function createResponse(uwsResponse: HttpResponse): Response {
 
     redirect(location, status = 307) {
       this.setHeader("Location", location).setStatus(status).send()
+    },
+
+    sendJson(data: JsonValue) {
+      this.setHeader("Content-Type", "application/json").send(
+        JSON.stringify(data)
+      )
     },
 
     send(data?: string) {
