@@ -6,9 +6,8 @@
   "configurations": [
     {
       "type": "node",
-      "runtimeExecutable": "yarn",
       "request": "launch",
-      "runtimeArgs": ["node", "--require=ts-node/register"],
+      "runtimeArgs": ["--require=ts-node/register"],
       "name": "Run test (current)",
       "program": "${workspaceFolder}/${relativeFile}",
       "cwd": "${workspaceFolder}/${relativeFileDirname}",

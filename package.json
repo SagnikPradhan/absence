@@ -4,7 +4,10 @@
   "workspaces": [
     "./packages/**/*"
   ],
-  "scripts": {},
+  "scripts": {
+    "build": "pnpm -r --sort build",
+    "test": "pnpm -r test"
+  },
   "devDependencies": {
     "@changesets/cli": "^2.24.1",
     "prettier": "^2.7.1",

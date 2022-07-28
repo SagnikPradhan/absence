@@ -1,0 +1,15 @@
+{
+  "mode": "pre",
+  "tag": "alpha",
+  "initialVersions": {
+    "absence": "1.0.0-rc.2",
+    "@absence/body": "1.0.0-rc.2",
+    "@absence/cookies": "1.0.0-rc.2",
+    "@absence/router": "1.0.0-rc.2",
+    "@absence/router-darwin-x64": "1.0.0-rc.2",
+    "@absence/router-linux-x64-gnu": "1.0.0-rc.2",
+    "@absence/router-win32-x64-msvc": "1.0.0-rc.2",
+    "@absence/scripts": "0.0.0"
+  },
+  "changesets": []
+}

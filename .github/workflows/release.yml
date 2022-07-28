@@ -23,16 +23,16 @@ jobs:
           - host: macos-latest
             target: x86_64-apple-darwin
             build: |
-              yarn build
+              pnpm build
               strip -x *.node
           - host: windows-latest
-            build: yarn build
+            build: pnpm build
             target: x86_64-pc-windows-msvc
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             build: |-
               set -e &&
-              yarn build --target x86_64-unknown-linux-gnu &&
+              pnpm build --target x86_64-unknown-linux-gnu &&
               strip *.node
 
     name: build - ${{ matrix.settings.target }}
@@ -46,7 +46,7 @@ jobs:
         with:
           node-version: latest
           check-latest: true
-          cache: yarn
+          cache: pnpm
 
       - name: Setup rust
         uses: actions-rs/toolchain@v1
@@ -72,7 +72,7 @@ jobs:
         run: corepack enable
 
       - name: Install dependencies
-        run: yarn install
+        run: pnpm install
 
       - name: Cache bindings
         uses: actions/cache@v3
@@ -88,7 +88,7 @@ jobs:
         shell: bash
 
       - name: Build packages
-        run: yarn build
+        run: pnpm build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -115,22 +115,13 @@ jobs:
         with:
           node-version: latest
           check-latest: true
-          cache: yarn
-
-      - name: Cache npm dependencies
-        uses: actions/cache@v3
-        id: yarn-cache
-        with:
-          path: .yarn/cache
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+          cache: pnpm
 
       - name: Enable corepack
         run: corepack enable
 
       - name: Install dependencies
-        run: yarn install
+        run: pnpm install
 
       - name: Download all artifacts
         uses: actions/download-artifact@v3
@@ -138,24 +129,20 @@ jobs:
           path: packages/absence-router/artifacts
 
       - name: Move artifacts
-        run: yarn workspace @absence/router artifacts
+        run: pnpm --filter @absence/router artifacts
 
       - name: Build packages
-        run: yarn build
+        run: pnpm build
 
-      - name: Publish
-        run: |
-          yarn version check
-          yarn version apply --all ${{ (github.ref_name == 'dev' && '--prerelease') || '' }}
-          yarn workspaces foreach --no-private npm publish --tolerate-republish --access public
-        env:
-          YARN_NPM_AUTH_TOKEN: "${{ secrets.NPM_AUTH_TOKEN }}"
+      - name: Exit pre release for main branch
+        if: github.ref_name == 'main'
+        run: pnpm changeset pre exit
 
-      - name: Commit changes
-        id: autocommit
-        uses: EndBug/add-and-commit@v9
+      - name: Create release pull request
+        uses: changesets/action@v1
         with:
-          push: "--force"
-          message: "Release"
+          version: pnpm changeset version
+          publish: pnpm changeset publish
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: "${{ secrets.NPM_AUTH_TOKEN }}"

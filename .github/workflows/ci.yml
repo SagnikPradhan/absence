@@ -23,16 +23,16 @@ jobs:
           - host: macos-latest
             target: x86_64-apple-darwin
             build: |
-              yarn build
+              pnpm build
               strip -x *.node
           - host: windows-latest
-            build: yarn build
+            build: pnpm build
             target: x86_64-pc-windows-msvc
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             build: |-
               set -e &&
-              yarn build --target x86_64-unknown-linux-gnu &&
+              pnpm build --target x86_64-unknown-linux-gnu &&
               strip *.node
 
     name: build and test - ${{ matrix.settings.target }}
@@ -48,7 +48,7 @@ jobs:
         with:
           node-version: latest
           check-latest: true
-          cache: yarn
+          cache: pnpm
 
       - name: Setup rust
         uses: actions-rs/toolchain@v1
@@ -74,7 +74,7 @@ jobs:
         run: corepack enable
 
       - name: Install dependencies
-        run: yarn install
+        run: pnpm install
 
       - name: Cache bindings
         uses: actions/cache@v3
@@ -90,7 +90,7 @@ jobs:
         shell: bash
 
       - name: Build packages
-        run: yarn build
+        run: pnpm build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -100,10 +100,7 @@ jobs:
           if-no-files-found: error
 
       - name: Test bindings
-        run: yarn test
+        run: pnpm test
 
       - name: Check format
-        run: yarn prettier --check .
-
-      - name: Check versions
-        run: yarn version check
+        run: pnpm prettier --check .
