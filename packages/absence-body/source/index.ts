@@ -1,4 +1,4 @@
-import Server from "absence"
+import { declareHandler } from "absence"
 import type { JsonObject } from "type-fest"
 
 export interface BodyOptions {
@@ -7,7 +7,7 @@ export interface BodyOptions {
 }
 
 export function body({ json, urlencoded }: BodyOptions) {
-  return Server.declareHandler(async ({ request }) => {
+  return declareHandler(async ({ request }) => {
     const type = request.headers["content-type"]?.split(";")[0]
 
     if (json && type === "application/json")

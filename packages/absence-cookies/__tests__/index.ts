@@ -1,9 +1,9 @@
-import Server from "absence"
-import { cookie } from "../source"
+import { createApp } from "absence"
 import superagent from "superagent"
+import { cookie } from "../source"
 
 it("Should set and read cookies", async () => {
-  const server = Server.create().use(cookie({ secret: "secret" }))
+  const server = createApp().use(cookie({ secret: "secret" }))
   const handler = jest.fn((context) => context.response.setStatus(200).send())
 
   server

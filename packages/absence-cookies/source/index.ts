@@ -1,5 +1,5 @@
-import Server from "absence"
-import { parse, serialize, CookieSerializeOptions } from "cookie"
+import { declareHandler } from "absence"
+import { CookieSerializeOptions, parse, serialize } from "cookie"
 import { createHmac, timingSafeEqual } from "node:crypto"
 
 export interface CookieOptions extends Omit<CookieSerializeOptions, "encode"> {
@@ -7,7 +7,7 @@ export interface CookieOptions extends Omit<CookieSerializeOptions, "encode"> {
 }
 
 export function cookie({ secret, ...options }: CookieOptions) {
-  return Server.declareHandler(async ({ request, response }) => {
+  return declareHandler(async ({ request, response }) => {
     const cookiesFromHeader = request.headers["cookie"]
       ? parse(request.headers["cookie"])
       : {}

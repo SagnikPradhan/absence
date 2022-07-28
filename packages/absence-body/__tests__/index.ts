@@ -1,9 +1,9 @@
-import Server from "absence"
-import { body } from "../source"
+import { createApp } from "absence"
 import superagent from "superagent"
+import { body } from "../source"
 
 it("Should parse json", async () => {
-  const server = Server.create().use(body({ json: true }))
+  const server = createApp().use(body({ json: true }))
   const handler = jest.fn((context) => context.response.setStatus(201).send())
 
   server.route({ path: "/", method: "post" }).use(handler)
@@ -22,7 +22,7 @@ it("Should parse json", async () => {
 })
 
 it("Should parse urlencoded", async () => {
-  const server = Server.create().use(body({ urlencoded: true }))
+  const server = createApp().use(body({ urlencoded: true }))
   const handler = jest.fn((context) => context.response.setStatus(201).send())
 
   server.route({ path: "/", method: "post" }).use(handler)
@@ -44,7 +44,7 @@ it("Should parse urlencoded", async () => {
 })
 
 it("Should ignore disabled parsers", async () => {
-  const server = Server.create().use(body({}))
+  const server = createApp().use(body({}))
   const handler = jest.fn((context) => context.response.setStatus(201).send())
 
   server.route({ path: "/", method: "post" }).use(handler)
