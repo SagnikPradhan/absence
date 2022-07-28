@@ -11,5 +11,8 @@
     "@absence/router-win32-x64-msvc": "1.0.0-rc.2",
     "@absence/scripts": "0.0.0"
   },
-  "changesets": ["metal-seals-sniff"]
+  "changesets": [
+    "metal-seals-sniff",
+    "sharp-carpets-jump"
+  ]
 }
