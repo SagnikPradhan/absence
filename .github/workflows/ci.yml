@@ -43,6 +43,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
       - name: Setup node
         uses: actions/setup-node@v3
         with:
@@ -74,7 +78,7 @@ jobs:
         run: corepack enable
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Cache bindings
         uses: actions/cache@v3

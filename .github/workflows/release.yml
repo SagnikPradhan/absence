@@ -41,6 +41,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
       - name: Setup node
         uses: actions/setup-node@v3
         with:
@@ -72,7 +76,7 @@ jobs:
         run: corepack enable
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Cache bindings
         uses: actions/cache@v3
@@ -103,12 +107,14 @@ jobs:
     needs:
       - build
 
-    if: github.event.head_commit.message != 'Release'
-
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: latest
 
       - name: Setup node
         uses: actions/setup-node@v3
@@ -121,7 +127,7 @@ jobs:
         run: corepack enable
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Download all artifacts
         uses: actions/download-artifact@v3
