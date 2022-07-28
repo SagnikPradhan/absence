@@ -1,20 +1,21 @@
-import Server from "absence/source"
-import { fetch } from "undici"
+import superagent from "superagent"
+import { createApp, declareHandler } from "../source"
 
 test("Should inject anonymous handler properties", async () => {
-  const injectProperties = Server.declareHandler(() => ({
+  const injectProperties = declareHandler(() => ({
     context: { hello: "world" },
     request: { helloRequest: "world" },
     response: { helloResponse: "world" },
   }))
 
   const handler = jest.fn((context) => context.response.setStatus(200).send())
-  const server = Server.create().use(injectProperties)
+  const server = createApp().use(injectProperties)
 
   server.route({ path: "/", method: "get" }).use(handler)
 
   const PORT = await server.listen(0)
-  await fetch(`http://localhost:${PORT}`)
+
+  await superagent(`http://localhost:${PORT}`).send()
 
   expect(handler).toHaveBeenCalledWith(
     expect.objectContaining({
@@ -29,11 +30,11 @@ test("Should inject anonymous handler properties", async () => {
 
 test("Should inject handler declared properties", async () => {
   const createMessageHandler = (message: string) =>
-    Server.declareHandler(() => ({
+    declareHandler(() => ({
       context: { message },
     }))
 
-  const server = Server.create().use("global", createMessageHandler("Global"))
+  const server = createApp().use("global", createMessageHandler("Global"))
   const handler = jest.fn((context) => context.response.setStatus(200).send())
 
   server
@@ -44,8 +45,8 @@ test("Should inject handler declared properties", async () => {
   server.route({ path: "/a", method: "get" }).use(handler)
 
   const PORT = await server.listen(0)
-  const responseA = await fetch(`http://localhost:${PORT}`)
-  const responseB = await fetch(`http://localhost:${PORT}/a`)
+  const responseA = await superagent(`http://localhost:${PORT}`).send()
+  const responseB = await superagent(`http://localhost:${PORT}/a`).send()
 
   expect(responseA.status).toEqual(200)
   expect(responseB.status).toEqual(200)

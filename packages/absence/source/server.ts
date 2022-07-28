@@ -1,10 +1,7 @@
-import { Router } from "@absence/router"
-
 import {
   App,
   HttpRequest,
   HttpResponse,
-  TemplatedApp,
   us_listen_socket_close,
   us_socket,
   us_socket_local_port,
@@ -12,111 +9,110 @@ import {
 
 import { createRequest } from "./request"
 import { createResponse } from "./response"
-import type { BaseContext, Middleware, Properties } from "./types"
 
-export class InternalServer<Context extends BaseContext> {
-  private readonly app: TemplatedApp
-  private readonly sockets: Set<us_socket>
+import type { BaseContext, Middleware } from "./types"
+import {
+  addReadonlyProperty,
+  createObjectWithReadonlyProperties,
+} from "./utilities"
 
-  protected readonly router: Router
-  protected readonly middlewares: Middleware<Context, Properties>[]
+export interface Server {
+  listen(port: number): Promise<number>
+  stop(): void
+}
 
-  constructor() {
-    this.app = App()
-    this.sockets = new Set()
-    this.router = new Router()
-    this.middlewares = []
+interface ServerOptions {
+  onError: (error: Error) => void
+  getRouteDetails: (matcher: Matcher) => RouteDetails | null
+}
 
-    this.app.any("/*", (httpResponse, httpRequest) =>
-      this.requestListener(httpResponse, httpRequest)
-    )
-  }
+interface Matcher {
+  path: string
+  method: string
+}
 
-  public listen(port: number) {
-    return new Promise<number>((resolve, reject) => {
-      this.app.listen(port, 1, (socket) => {
-        if (socket) {
-          this.sockets.add(socket)
+interface RouteDetails {
+  parameters: Record<string, string>
+  middleware: Middleware[]
+}
+
+export function createServer({
+  onError,
+  getRouteDetails,
+}: ServerOptions): Server {
+  const server = App()
+  const sockets: Set<us_socket> = new Set()
+
+  server.any("/*", (response, request) => {
+    const route = getRouteDetails({
+      path: request.getUrl(),
+      method: request.getMethod(),
+    })
+
+    onRequest({ response, request, route }).catch(onError)
+  })
+
+  return {
+    listen(port) {
+      return new Promise<number>((resolve, reject) => {
+        server.listen(port, 1, (socket) => {
+          if (!socket) return reject(new Error(`Could not connect to ${port}`))
+          sockets.add(socket)
           return resolve(us_socket_local_port(socket))
-        }
-
-        reject(new Error(`Could not connect to ${port}`))
+        })
       })
-    })
-  }
+    },
 
-  public stop() {
-    for (const socket of this.sockets) us_listen_socket_close(socket)
-    this.sockets.clear()
-  }
-
-  private async requestListener(
-    httpResponse: HttpResponse,
-    httpRequest: HttpRequest
-  ) {
-    const response = createResponse(httpResponse)
-
-    const route = this.router.find(
-      httpRequest.getMethod(),
-      httpRequest.getUrl()
-    )
-
-    if (!route) return response.setStatus(404).send()
-
-    const request = await createRequest({
-      response: httpResponse,
-      request: httpRequest,
-      parameters: route.parameters,
-    })
-
-    const context = { request, response } as Context
-
-    const middlewares: Middleware<Context, Properties>[] = [
-      ...this.middlewares,
-      ...route.handles,
-    ]
-
-    for (const middleware of middlewares)
-      await this.executeMiddleware(context, middleware)
-  }
-
-  private async executeMiddleware(
-    context: Context,
-    middleware: Middleware<Context, Properties>
-  ) {
-    const value = await middleware.handler(context)
-
-    if (value) {
-      if ("context" in value)
-        addReadOnlyProperty(context, value.context, middleware.name)
-
-      if ("request" in value)
-        addReadOnlyProperty(context.request, value.request, middleware.name)
-
-      if ("response" in value)
-        addReadOnlyProperty(context.response, value.response, middleware.name)
-    }
+    stop() {
+      // TODO: Support stopping specific socket
+      for (const socket of sockets) us_listen_socket_close(socket)
+    },
   }
 }
 
-function addReadOnlyProperty(
-  target: object,
-  value: object,
-  prefix: string | null
+interface RequestListenerOptions {
+  response: HttpResponse
+  request: HttpRequest
+  route: RouteDetails | null
+}
+
+async function onRequest(options: RequestListenerOptions) {
+  const response = createResponse(options.response)
+  const route = options.route
+
+  if (!route) return response.setStatus(404).send()
+
+  const request = await createRequest({
+    response: options.response,
+    request: options.request,
+    parameters: route.parameters,
+  })
+
+  return executeMiddlewares(
+    createObjectWithReadonlyProperties({ request, response }),
+    route.middleware
+  )
+}
+
+async function executeMiddlewares(
+  context: BaseContext,
+  middleware: Middleware[]
 ) {
-  if (prefix)
-    Object.defineProperty(target, prefix, {
-      value: Object.freeze(value),
-      configurable: false,
-      enumerable: true,
-      writable: false,
-    })
-  else
-    for (const [k, v] of Object.entries(value))
-      Object.defineProperty(target, k, {
-        value: Object.freeze(v),
-        configurable: false,
-        enumerable: true,
-        writable: false,
-      })
+  for (const { name, handler } of middleware) {
+    if (context.response.status.sent) break
+
+    const value = await handler(context)
+
+    function addContextProperty<A, B extends {}>(object: A, value: B) {
+      return name
+        ? addReadonlyProperty(object, name, value)
+        : Object.assign(object, createObjectWithReadonlyProperties(value))
+    }
+
+    if (value) {
+      if (value.context) addContextProperty(context, value.context)
+      if (value.request) addContextProperty(context.request, value.request)
+      if (value.response) addContextProperty(context.response, value.response)
+    }
+  }
 }

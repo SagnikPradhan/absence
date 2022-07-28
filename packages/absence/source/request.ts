@@ -45,16 +45,5 @@ export async function createRequest({
   const headers = getHeaders(request)
   const body = await getBody(response)
 
-  const parsedRequest = { path, method, queries, parameters, headers, body }
-
-  Object.defineProperties(parsedRequest, {
-    path: { configurable: false, writable: false },
-    method: { configurable: false, writable: false },
-    queries: { configurable: false, writable: false },
-    parameters: { configurable: false, writable: false },
-    headers: { configurable: false, writable: false },
-    body: { configurable: false, writable: false },
-  })
-
-  return parsedRequest
+  return { path, method, queries, parameters, headers, body }
 }

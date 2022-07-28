@@ -8,6 +8,7 @@ interface Payload {
 }
 
 export interface Response {
+  status: { aborted: boolean; sent: boolean }
   setHeader(key: string, value: string): Response
   setStatus(status: number, message?: string): Response
   redirect(location: string, status?: number): void
@@ -20,10 +21,12 @@ export function createResponse(uwsResponse: HttpResponse): Response {
 
   const response: Payload = {
     headers: [],
-    status: `418 ${STATUS_CODES[418]}`,
+    status: `200 ${STATUS_CODES[200]}`,
   }
 
   return {
+    status: responseStatus,
+
     setHeader(key: string, value: string) {
       response.headers.push([key, value])
       return this

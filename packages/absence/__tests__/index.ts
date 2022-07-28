@@ -1,8 +1,9 @@
-import Server from "../source"
+import superagent from "superagent"
 import { fetch } from "undici"
+import { createApp } from "../source"
 
 test("Should respond GET request", async () => {
-  const server = Server.create()
+  const server = createApp()
 
   server.route({ path: "/", method: "get" }).use(async (context) => {
     return context.response
@@ -24,7 +25,7 @@ test("Should respond GET request", async () => {
 })
 
 test("Should respond 404 request", async () => {
-  const server = Server.create()
+  const server = createApp()
   const PORT = await server.listen(0)
   const response = await fetch(`http://localhost:${PORT}`)
 
@@ -35,7 +36,7 @@ test("Should respond 404 request", async () => {
 })
 
 test("Should redirect", async () => {
-  const server = Server.create()
+  const server = createApp()
 
   server
     .route({ path: "/redirect", method: "get" })
@@ -46,10 +47,11 @@ test("Should redirect", async () => {
     .use((context) => context.response.send("You are on root"))
 
   const PORT = await server.listen(0)
-  const response = await fetch(`http://localhost:${PORT}/redirect`)
+  const response = await superagent(`http://localhost:${PORT}/redirect`)
+    .redirects(1)
+    .send()
 
-  expect(response.redirected).toEqual(true)
-  expect(await response.text()).toEqual("You are on root")
+  expect(response.text).toEqual("You are on root")
 
   server.stop()
 })

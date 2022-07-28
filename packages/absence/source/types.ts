@@ -16,7 +16,10 @@ export interface Properties<C = {}, Request = {}, Response = {}> {
   response?: Response
 }
 
-export interface Middleware<C extends BaseContext, P extends Properties> {
+export interface Middleware<
+  C extends BaseContext = BaseContext,
+  P extends Properties = Properties
+> {
   name: string | null
   handler: Handler<C, P> | Handler<C, void>
 }
