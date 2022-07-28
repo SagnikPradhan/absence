@@ -147,7 +147,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish
-        if: steps.changesets.outputs.hasChangesets == 'false'
+        if: steps.changesets.outputs.hasChangesets == 'true'
         run: pnpm -r publish --no-git-checks
         env:
           NPM_TOKEN: "${{ secrets.NPM_AUTH_TOKEN }}"
