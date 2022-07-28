@@ -74,9 +74,6 @@ jobs:
             packages/absence-router/target/
           key: ${{ matrix.settings.target }}-cargo-registry
 
-      - name: Enable corepack
-        run: corepack enable
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
