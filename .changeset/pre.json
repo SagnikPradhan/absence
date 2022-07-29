@@ -10,5 +10,8 @@
     "@absence/router-linux-x64-gnu": "1.0.0",
     "@absence/router-win32-x64-msvc": "1.0.0",
     "@absence/scripts": "0.0.0"
-  }
+  },
+  "changesets": [
+    "plenty-trains-greet"
+  ]
 }
