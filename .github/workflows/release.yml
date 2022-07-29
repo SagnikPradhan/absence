@@ -139,12 +139,14 @@ jobs:
         if: github.ref_name == 'main'
         run: pnpm changeset pre exit
 
-      - name: Create release
+      - name: Create PR
         id: changesets
         uses: changesets/action@v1
-        with:
-          publish: pnpm ci:publish
-          createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+
+      - name: Setup npmrc
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" > .npmrc
+
+      - name: Create release
+        run: pnpm ci:publish

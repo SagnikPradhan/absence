@@ -7,7 +7,7 @@
   "scripts": {
     "build": "pnpm -r --sort build",
     "test": "pnpm -r test",
-    "ci:publish": "pnpm -r publish"
+    "ci:publish": "pnpm -r publish --no-git-check"
   },
   "devDependencies": {
     "@changesets/cli": "^2.24.1",
