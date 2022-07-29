@@ -1,13 +1,17 @@
 {
   "name": "@absence/router",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0",
   "main": "index.js",
   "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
   "scripts": {
     "artifacts": "napi artifacts",
     "build": "napi build --platform --release",
     "build:debug": "napi build --platform",
-    "prepublishOnly": "napi prepublish -t npm",
+    "skipPrepublishOnly": "napi prepublish -t npm",
     "test": "jest --config @absence/scripts/jest.js",
     "version": "napi version"
   },
@@ -16,9 +20,9 @@
     "triples": {}
   },
   "optionalDependencies": {
+    "@absence/router-win32-x64-msvc": "workspace:^",
     "@absence/router-darwin-x64": "workspace:^",
-    "@absence/router-linux-x64-gnu": "workspace:^",
-    "@absence/router-win32-x64-msvc": "workspace:^"
+    "@absence/router-linux-x64-gnu": "workspace:^"
   },
   "devDependencies": {
     "@absence/scripts": "workspace:^",

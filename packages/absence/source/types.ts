@@ -12,9 +12,13 @@ export type Handler<C extends BaseContext, P extends Properties | void> = (
   context: C
 ) => Promise<P> | P
 
+/** Properties to be injected */
 export interface Properties<C = {}, Request = {}, Response = {}> {
+  /** Properties to be injected in context */
   context?: C
+  /** Properties to be injected in request */
   request?: Request
+  /** Properties to be injected in response */
   response?: Response
 }
 
