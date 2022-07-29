@@ -9,4 +9,4 @@
 "@absence/scripts": major
 ---
 
-Towards alpha releases
+Bump to v2 alpha release

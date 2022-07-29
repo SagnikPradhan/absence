@@ -14,7 +14,7 @@ env:
       - "**/*.gitignore"
 
 jobs:
-  build:
+  build-bindings:
     if: ${{ !startsWith(github.event.head_commit.message, 'Version Packages') }}
 
     strategy:
@@ -43,7 +43,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: latest
 
@@ -81,7 +82,7 @@ jobs:
         uses: actions/cache@v3
         id: bindings-cache
         with:
-          path: packages/absence-router/rotuer.*.node
+          path: packages/absence-router/router.*.node
           key: ${{ runner.os }}-bindings-${{ hashFiles('packages/absence-router/**/*.rs') }}
 
       - name: Build bindings
@@ -89,9 +90,6 @@ jobs:
         working-directory: packages/absence-router
         run: ${{ matrix.settings.build }}
         shell: bash
-
-      - name: Build packages
-        run: pnpm build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -104,14 +102,15 @@ jobs:
     name: release
     runs-on: ubuntu-latest
     needs:
-      - build
+      - build-bindings
 
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v2
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: latest
 
@@ -140,14 +139,12 @@ jobs:
         if: github.ref_name == 'main'
         run: pnpm changeset pre exit
 
-      - name: Create release pull request
+      - name: Create release
         id: changesets
         uses: changesets/action@v1
+        with:
+          publish: pnpm ci:publish
+          createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish
-        if: steps.changesets.outputs.hasChangesets == 'true'
-        run: pnpm -r publish --no-git-checks
-        env:
-          NPM_TOKEN: "${{ secrets.NPM_AUTH_TOKEN }}"
+          NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}

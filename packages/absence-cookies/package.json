@@ -1,11 +1,12 @@
 {
   "name": "@absence/cookies",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0",
   "main": "./build/index.js",
   "module": "./build/index.mjs",
   "types": "./build/index.d.ts",
   "files": [
-    "./build"
+    "build",
+    "!build/**/*.d.*.map"
   ],
   "scripts": {
     "build": "rollup --config node:@absence/scripts/rollup.js",
