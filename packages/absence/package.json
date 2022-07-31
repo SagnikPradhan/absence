@@ -9,7 +9,7 @@
     "!build/**/*.d.*.map"
   ],
   "scripts": {
-    "build": "rollup --config node:@absence/scripts/rollup.js",
+    "build": "rollup --config node:@absence/scripts/build/rollup.config.js",
     "test": "jest --config @absence/scripts/jest.js"
   },
   "dependencies": {

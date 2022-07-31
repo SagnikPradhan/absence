@@ -1,16 +1,21 @@
 import { resolve } from "node:path"
+import type { RollupOptions } from "rollup"
 import typescript from "rollup-plugin-ts"
+import { generateDtsPlugin } from "./plugin/index.js"
 
-const root = (...a) => resolve(process.cwd(), ...a)
+const root = (...a: string[]) => resolve(process.cwd(), ...a)
 
-/** @type {import("rollup").RollupOptions} */
-const configuration = {
+const configuration: RollupOptions = {
   input: root("source/index.ts"),
 
   plugins: [
     typescript({
-      tsconfig: require.resolve("./tsconfig.build.json"),
+      tsconfig: require.resolve("../tsconfig.build.json"),
       browserslist: "last 2 years and maintained node versions",
+    }),
+
+    generateDtsPlugin({
+      tsconfig: resolve(process.cwd(), "tsconfig.json"),
     }),
   ],
 

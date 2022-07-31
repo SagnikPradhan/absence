@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.base.json",
+
+  "compilerOptions": {
+    "rootDir": "source",
+    "outDir": "build",
+    "noEmit": false,
+    "module": "ES2022",
+    "target": "es2022"
+  },
+
+  "exclude": ["*.js", "build"]
+}
